@@ -14,6 +14,7 @@ export class AIService {
         try {
           const response$ = this.httpService.post(url, body, {
             headers: { 'Content-Type': 'application/json' },
+            timeout: 1200000, // Timeout in milliseconds
           });
           const response = await lastValueFrom(response$); // Convert Observable to Promise
           return response.data;
