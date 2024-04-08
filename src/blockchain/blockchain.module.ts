@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { EthereumService } from './ethereum/eth.service';
+//import { EthereumService } from './ethereum/eth.service';
 import { SolanaService } from './solana/sol.service';
+import { SolanaController } from './solana/sol.controller';
 
 @Module({
-    providers: [EthereumService, SolanaService],
-    exports: [EthereumService, SolanaService],
-})
+    imports: [],
+    controllers: [SolanaController],
+    providers: [SolanaService],
+  })
 export class BlockchainModule {}

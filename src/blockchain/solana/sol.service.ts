@@ -5,7 +5,7 @@ import * as solanaWeb3 from '@solana/web3.js';
 export class SolanaService {
 
   public getConnection(rpcUrl: string): solanaWeb3.Connection {
-    return new solanaWeb3.Connection('https://mainnet.helius-rpc.com/?api-key=0cf98e33-5256-478a-9722-abed49a0c348', 'confirmed');
+    return new solanaWeb3.Connection(rpcUrl, 'confirmed');
   }
 
   public async getLastBlock(rpcUrl: string): Promise<number> {
