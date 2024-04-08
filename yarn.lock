@@ -1412,7 +1412,7 @@
     webpack "5.90.1"
     webpack-node-externals "3.0.0"
 
-"@nestjs/common@^10.0.0", "@nestjs/common@^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/common@^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/common@^9.0.0 || ^10.0.0":
+"@nestjs/common@^10.0.0", "@nestjs/common@^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/common@^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/common@^9.0.0 || ^10.0.0", "@nestjs/common@^9.3.7 || ^10.0.0":
   version "10.3.7"
   resolved "https://registry.npmjs.org/@nestjs/common/-/common-10.3.7.tgz"
   integrity sha512-gKFtFzcJznrwsRYjtNZoPAvSOPYdNgxbTYoAyLTpoy393cIKgLmJTHu6ReH8/qIB9AaZLdGaFLkx98W/tFWFUw==
@@ -1421,7 +1421,7 @@
     tslib "2.6.2"
     uid "2.0.2"
 
-"@nestjs/core@^10.0.0", "@nestjs/core@^9.0.0 || ^10.0.0":
+"@nestjs/core@^10.0.0", "@nestjs/core@^9.0.0 || ^10.0.0", "@nestjs/core@^9.3.7 || ^10.0.0":
   version "10.3.7"
   resolved "https://registry.npmjs.org/@nestjs/core/-/core-10.3.7.tgz"
   integrity sha512-hsdlnfiQ3kgqHL5k7js3CU0PV7hBJVi+LfFMgCkoagRxNMf67z0GFGeOV2jk5d65ssB19qdYsDa1MGVuEaoUpg==
@@ -1432,6 +1432,14 @@
     path-to-regexp "3.2.0"
     tslib "2.6.2"
     uid "2.0.2"
+
+"@nestjs/devtools-integration@^0.1.6":
+  version "0.1.6"
+  resolved "https://registry.npmjs.org/@nestjs/devtools-integration/-/devtools-integration-0.1.6.tgz"
+  integrity sha512-7v2Oa7g2zxYB2DfRz5RsRyNOlrbPc32NG3FowyI3nGCOWtNaRAuZtAx7LjdnIphQGXDuIgVNMLROQaKpxI1eWg==
+  dependencies:
+    chalk "^4.1.2"
+    node-fetch "^2.6.9"
 
 "@nestjs/mapped-types@2.0.5":
   version "2.0.5"
@@ -5445,7 +5453,7 @@ node-emoji@1.11.0:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@^2.7.0:
+node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@^2.6.9, node-fetch@^2.7.0:
   version "2.7.0"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz"
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==

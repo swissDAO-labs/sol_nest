@@ -3,6 +3,7 @@ import * as solanaWeb3 from '@solana/web3.js';
 import { Metaplex, keypairIdentity, toMetaplexFile, toBigNumber } from "@metaplex-foundation/js";
 import { AIService } from 'src/ai/ai.service';
 import * as bs58 from 'bs58';
+import axios from 'axios';
 
 @Injectable()
 export class SolanaService {
@@ -84,18 +85,20 @@ export class SolanaService {
 
   public async mintNFT(walletAddress: string, prompt: string, userInput: string): Promise<string> {
 
-    const metaData = await this.generateMetadata(prompt, userInput);
-    const { name, description, external_url, image, attributes } = metaData;
-
     const QUICKNODE_RPC = 'https://proportionate-wider-diamond.solana-devnet.quiknode.pro/19ed12d6e746c89d77e41742081cd0e015c44e61/';
     const SOLANA_CONNECTION = new solanaWeb3.Connection(QUICKNODE_RPC);
 
     const decodedSecretKey = bs58.decode('9iKxJ1d2MB4So7P9XpXWzsxVgAgkygJb6RbLUMYp8rfUUjwykzWAf2nsMKJTtbUU2PQ7yvf2TPz7FHL9cZcZri3');
     const WALLET = solanaWeb3.Keypair.fromSecretKey(decodedSecretKey);
 
+    console.log(WALLET);
+
     const METAPLEX = Metaplex.make(SOLANA_CONNECTION).use(keypairIdentity(WALLET));
 
-    const CONFIG = {
+    //const metaData = await this.generateMetadata(prompt, userInput);
+    //const { name, description, external_url, image, attributes } = metaData;
+
+    /*const CONFIG = {
       uploadPath: image,
       imgFileName: `${name}.png`,
       imgType: 'image/png',
@@ -135,8 +138,84 @@ export class SolanaService {
         symbol: CONFIG.symbol,
         creators: CONFIG.creators,
         isMutable: false,
+    });*/
+    
+    const CONFIG = {
+      uploadPath: 'https://ivory-fancy-hamster-735.mypinata.cloud/ipfs/QmRzjNUsscdDfaqzbRwU4zZhcp392nchMsnaBLUAZEd16g',
+      imgFileName: `eyo.png`,
+      imgType: 'image/png',
+      imgName: 'eyo',
+      description: 'yeye',
+      attributes: [
+        {trait_type: 'Speed', value: 'Quick'},
+        {trait_type: 'Type', value: 'Pixelated'},
+        {trait_type: 'Background', value: 'QuickNode Blue'}
+      ],
+      sellerFeeBasisPoints: 500, //500 bp = 5%
+      symbol: 'SCF',
+      creators: [
+          {address: WALLET.publicKey, share: 100}
+      ]
+    };
+
+    const { uri } = await METAPLEX
+    .nfts()
+    .uploadMetadata({
+        name: 'Scarif',
+        description: 'eyo',
+        image: CONFIG.uploadPath,
+        attributes: [
+          {trait_type: 'Speed', value: 'Quick'},
+          {trait_type: 'Type', value: 'Pixelated'},
+          {trait_type: 'Background', value: 'QuickNode Blue'}
+        ],
+        properties: {
+            files: [
+                {
+                    type: CONFIG.imgType,
+                    uri: CONFIG.uploadPath,
+                },
+            ]
+        }
+    });
+
+    const { nft } = await METAPLEX
+    .nfts()
+    .create({
+        uri: uri,
+        name: 'eyo',
+        sellerFeeBasisPoints: CONFIG.sellerFeeBasisPoints,
+        symbol: CONFIG.symbol,
+        creators: CONFIG.creators,
+        isMutable: false,
     });
 
     return `Minted NFT: https://explorer.solana.com/address/${nft.address}?cluster=devnet`;
+
+    /*(async () => {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      const data = {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "cm_mintNFT",
+        params: ["FILL_ME_ARG_1", "FILL_ME_ARG_2", "FILL_ME_ARG_3"],
+      };
+
+      try {
+        const response = await axios.post(
+          "https://proportionate-wider-diamond.solana-devnet.quiknode.pro/19ed12d6e746c89d77e41742081cd0e015c44e61/",
+          data,
+          config
+        );
+        console.log(response.data);
+      } catch (err) {
+        console.log(err);
+      }
+    })();*/
   }
 }

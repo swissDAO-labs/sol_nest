@@ -3,7 +3,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { BlockchainModule } from './blockchain/blockchain.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(BlockchainModule);
+  const app = await NestFactory.create(BlockchainModule, {
+    snapshot: true
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Scarif API')
