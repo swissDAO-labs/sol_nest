@@ -1,4 +1,4 @@
-import { Controller, Get, ParseIntPipe, HttpException, HttpStatus, Param, Res } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, HttpException, HttpStatus, Param, Res, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SolanaService } from './sol.service';
 import { BlockResponse } from '@solana/web3.js';
@@ -70,5 +70,19 @@ export class SolanaController {
             throw new HttpException('Failed to generate metadata: ' + error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @ApiOperation({ summary: 'mint NFT' })
+    @ApiResponse({ status: 200, description: 'NFT minted', type: Object })
+    @ApiResponse({ status: 500, description: 'Internal Server Error' })
+    @ApiParam({ name: 'walletAdress', description: 'Wallet Adress', type: String })
+    @ApiParam({ name: 'prompt', description: 'Prompt', type: String })
+    @ApiParam({ name: 'userInput', description: 'User input', type: String })
+    
+    @Post()
+    async mintNFT(@Body() mintRequest: { walletAddress: string; prompt: string; userInput: string}) {
+        const { walletAddress, prompt, userInput } = mintRequest;
+        return this.solanaService.mintNFT(walletAddress, prompt, userInput);
+    }
+
 
 }

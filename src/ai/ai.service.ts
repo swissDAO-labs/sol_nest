@@ -8,7 +8,7 @@ export class AIService {
     constructor(private httpService: HttpService) {}
     
     async predict(seed: number, prompt: string) {
-        const url = 'https://ai-backend-rewr2tq56a-oa.a.run.app/predict';
+        const url = 'https://ai-backend-v2-rewr2tq56a-ey.a.run.app/predict';
         const body = { seed, prompt };
     
         try {

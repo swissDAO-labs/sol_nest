@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as solanaWeb3 from '@solana/web3.js';
+import { Metaplex, keypairIdentity, toMetaplexFile, toBigNumber } from "@metaplex-foundation/js";
 import { AIService } from 'src/ai/ai.service';
 
 @Injectable()
@@ -78,5 +79,20 @@ export class SolanaService {
 
     } catch (error) {
       throw new HttpException('AI Service failed to predict the image: ' + error.message, HttpStatus.INTERNAL_SERVER_ERROR);    }
+  }
+
+  public async mintNFT(walletAddress: string, prompt: string, userInput: string): Promise<string> {
+    
+    const metaData = await this.generateMetadata(prompt, userInput);
+
+    if (!metaData) {
+      throw new HttpException('Failed to generate metadata', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const QUICKNODE_RPC = 'https://proportionate-wider-diamond.solana-devnet.quiknode.pro/19ed12d6e746c89d77e41742081cd0e015c44e61/';
+    const SOLANA_CONNECTION = new solanaWeb3.Connection(QUICKNODE_RPC);
+
+    return "Minted NFT successfully";
+
   }
 }
