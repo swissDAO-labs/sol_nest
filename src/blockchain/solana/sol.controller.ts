@@ -28,7 +28,7 @@ export class SolanaController {
     @ApiResponse({ status: 200, description: 'Current block number', type: Number })
     @ApiResponse({ status: 500, description: 'Internal Server Error' })
     @ApiParam({ name: 'rpcUrl', description: 'RPC URL', type: String })
-    @Get('last-block/:rpcUrl')
+    @Get('block/:rpcUrl')
     async getCurrentBlock(
         @Param('rpcUrl') rpcUrl: string
     ): Promise<number> {
@@ -64,8 +64,8 @@ export class SolanaController {
     @Get('generate/:prompt/:userInput')
     async generateMetadata(@Param('prompt') prompt: string, @Param('userInput') userInput: string) {
         try {
-            const traits = await this.solanaService.generateMetadata(prompt, userInput);
-            return { traits };
+            const metaData = await this.solanaService.generateMetadata(prompt, userInput);
+            return { metaData };
         } catch (error) {
             throw new HttpException('Failed to generate metadata: ' + error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
