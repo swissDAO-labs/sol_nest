@@ -18,7 +18,7 @@ export class SolanaController {
     ): Promise<{message: string}> {
         try {
             this.solanaService.getConnection(rpcUrl);
-            return { message: 'Connection established' };
+            return { message: 'Connection ayoooooo' };
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
