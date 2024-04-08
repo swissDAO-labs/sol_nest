@@ -15,10 +15,10 @@ export class SolanaController {
     @Get('connection/:rpcUrl')
     async checkConnection(
         @Param('rpcUrl') rpcUrl: string
-    ): Promise<string> {
+    ): Promise<{message: string}> {
         try {
             this.solanaService.getConnection(rpcUrl);
-            return 'Connection established';
+            return { message: 'Connection established' };
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
