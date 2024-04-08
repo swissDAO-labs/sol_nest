@@ -59,6 +59,7 @@ export class SolanaController {
     @ApiOperation({ summary: 'Generate metadata' })
     @ApiResponse({ status: 200, description: 'Generated metadata', type: Object })
     @ApiResponse({ status: 500, description: 'Internal Server Error' })
+    @ApiResponse({ status: 504, description: 'Timeout' })
     @ApiParam({ name: 'prompt', description: 'Prompt', type: String })
     @ApiParam({ name: 'userInput', description: 'User input', type: String })
     @Get('generate/:prompt/:userInput')
@@ -78,10 +79,15 @@ export class SolanaController {
     @ApiParam({ name: 'prompt', description: 'Prompt', type: String })
     @ApiParam({ name: 'userInput', description: 'User input', type: String })
     
-    @Post()
+    @Post('mintNFT/:walletAddress/:prompt/:userInput')
     async mintNFT(@Body() mintRequest: { walletAddress: string; prompt: string; userInput: string}) {
         const { walletAddress, prompt, userInput } = mintRequest;
-        return this.solanaService.mintNFT(walletAddress, prompt, userInput);
+        try {
+            const result = await this.solanaService.mintNFT(walletAddress, prompt, userInput);
+            return result;
+        } catch (error) {
+            throw new HttpException(`Failed to mint NFT: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 

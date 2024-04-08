@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as solanaWeb3 from '@solana/web3.js';
 import { Metaplex, keypairIdentity, toMetaplexFile, toBigNumber } from "@metaplex-foundation/js";
 import { AIService } from 'src/ai/ai.service';
+import * as bs58 from 'bs58';
 
 @Injectable()
 export class SolanaService {
@@ -55,7 +56,7 @@ export class SolanaService {
       }
 
       const metaData = {
-        name: 'Solana NFT',
+        name: 'Scarif NFT',
         description: `A ${color} ${location} ${prompt} ${userInput} that looks ${emotion.toLowerCase()}`,
         external_url: 'scarif.xyz',
         image: image_url,
@@ -82,17 +83,60 @@ export class SolanaService {
   }
 
   public async mintNFT(walletAddress: string, prompt: string, userInput: string): Promise<string> {
-    
-    const metaData = await this.generateMetadata(prompt, userInput);
 
-    if (!metaData) {
-      throw new HttpException('Failed to generate metadata', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    const metaData = await this.generateMetadata(prompt, userInput);
+    const { name, description, external_url, image, attributes } = metaData;
 
     const QUICKNODE_RPC = 'https://proportionate-wider-diamond.solana-devnet.quiknode.pro/19ed12d6e746c89d77e41742081cd0e015c44e61/';
     const SOLANA_CONNECTION = new solanaWeb3.Connection(QUICKNODE_RPC);
 
-    return "Minted NFT successfully";
+    const decodedSecretKey = bs58.decode('9iKxJ1d2MB4So7P9XpXWzsxVgAgkygJb6RbLUMYp8rfUUjwykzWAf2nsMKJTtbUU2PQ7yvf2TPz7FHL9cZcZri3');
+    const WALLET = solanaWeb3.Keypair.fromSecretKey(decodedSecretKey);
 
+    const METAPLEX = Metaplex.make(SOLANA_CONNECTION).use(keypairIdentity(WALLET));
+
+    const CONFIG = {
+      uploadPath: image,
+      imgFileName: `${name}.png`,
+      imgType: 'image/png',
+      imgName: name,
+      description: description,
+      attributes: attributes,
+      sellerFeeBasisPoints: 500, //500 bp = 5%
+      symbol: 'SCF',
+      creators: [
+          {address: WALLET.publicKey, share: 100}
+      ]
+    };
+
+    const { uri } = await METAPLEX
+    .nfts()
+    .uploadMetadata({
+        name: 'Scarif',
+        description: description,
+        image: CONFIG.uploadPath,
+        attributes: attributes,
+        properties: {
+            files: [
+                {
+                    type: CONFIG.imgType,
+                    uri: CONFIG.uploadPath,
+                },
+            ]
+        }
+    });
+
+    const { nft } = await METAPLEX
+    .nfts()
+    .create({
+        uri: uri,
+        name: name,
+        sellerFeeBasisPoints: CONFIG.sellerFeeBasisPoints,
+        symbol: CONFIG.symbol,
+        creators: CONFIG.creators,
+        isMutable: false,
+    });
+
+    return `Minted NFT: https://explorer.solana.com/address/${nft.address}?cluster=devnet`;
   }
 }
