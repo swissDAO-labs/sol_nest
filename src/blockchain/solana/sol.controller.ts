@@ -8,6 +8,22 @@ import { BlockResponse } from '@solana/web3.js';
 export class SolanaController {
     constructor(private readonly solanaService: SolanaService) {}
 
+    @ApiOperation({summary: 'Check connection'})
+    @ApiResponse({status: 200, description: 'Connection established'})
+    @ApiResponse({status: 500, description: 'Internal Server Error'})
+    @ApiParam({name: 'rpcUrl', description: 'RPC URL', type: String})
+    @Get('connection/:rpcUrl')
+    async checkConnection(
+        @Param('rpcUrl') rpcUrl: string
+    ): Promise<string> {
+        try {
+            this.solanaService.getConnection(rpcUrl);
+            return 'Connection established';
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @ApiOperation({ summary: 'Get current block number' })
     @ApiResponse({ status: 200, description: 'Current block number', type: Number })
     @ApiResponse({ status: 500, description: 'Internal Server Error' })
