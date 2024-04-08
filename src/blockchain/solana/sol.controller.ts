@@ -1,4 +1,4 @@
-import { Controller, Get, ParseIntPipe, HttpException, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, HttpException, HttpStatus, Param, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SolanaService } from './sol.service';
 import { BlockResponse } from '@solana/web3.js';
@@ -55,4 +55,20 @@ export class SolanaController {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    @ApiOperation({ summary: 'Generate metadata' })
+    @ApiResponse({ status: 200, description: 'Generated metadata', type: Object })
+    @ApiResponse({ status: 500, description: 'Internal Server Error' })
+    @ApiParam({ name: 'prompt', description: 'Prompt', type: String })
+    @ApiParam({ name: 'userInput', description: 'User input', type: String })
+    @Get('generate/:prompt/:userInput')
+    async generateMetadata(@Param('prompt') prompt: string, @Param('userInput') userInput: string) {
+        try {
+            const traits = await this.solanaService.generateMetadata(prompt, userInput);
+            return { traits };
+        } catch (error) {
+            throw new HttpException('Failed to generate metadata: ' + error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
