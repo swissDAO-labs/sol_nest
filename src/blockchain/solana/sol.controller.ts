@@ -72,7 +72,7 @@ export class SolanaController {
         }
     }
 
-    @ApiOperation({ summary: 'mint NFT' })
+    @ApiOperation({ summary: 'Mint NFT' })
     @ApiResponse({ status: 200, description: 'NFT minted', type: Object })
     @ApiResponse({ status: 201, description: 'NFT minted', type: Object })
     @ApiResponse({ status: 500, description: 'Internal Server Error' })

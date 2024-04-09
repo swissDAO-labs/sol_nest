@@ -8,6 +8,7 @@ import { PredictDto } from 'src/dto/predict.dto';
 @Controller('ai')
 export class AIController {
   constructor(private aiService: AIService) {}
+  @ApiOperation({ summary: 'Predict using AI' })
   @ApiResponse({status: 200, description: 'Successfully predicted'})
   @ApiResponse({status: 201, description: 'Successfully predicted'})
   @ApiResponse({status: 500, description: 'Internal Server Error'})
