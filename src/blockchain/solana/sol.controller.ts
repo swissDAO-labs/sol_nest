@@ -18,7 +18,7 @@ export class SolanaController {
     ): Promise<{message: string}> {
         try {
             this.solanaService.getConnection(rpcUrl);
-            return { message: 'Connection ayoooooo' };
+            return { message: 'Connection established' };
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -74,6 +74,7 @@ export class SolanaController {
 
     @ApiOperation({ summary: 'mint NFT' })
     @ApiResponse({ status: 200, description: 'NFT minted', type: Object })
+    @ApiResponse({ status: 201, description: 'NFT minted', type: Object })
     @ApiResponse({ status: 500, description: 'Internal Server Error' })
     @ApiParam({ name: 'walletAdress', description: 'Wallet Adress', type: String })
     @ApiParam({ name: 'prompt', description: 'Prompt', type: String })

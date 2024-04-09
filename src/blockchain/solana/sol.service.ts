@@ -9,6 +9,9 @@ import { createV1 } from '@metaplex-foundation/mpl-core';
 import Irys from "@irys/sdk";
 // import { useWallet } from '@solana/wallet-adapter-react'
 import * as bs58 from 'bs58';
+import { promises as fs } from 'fs';
+import axios from 'axios';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class SolanaService {
@@ -21,6 +24,34 @@ export class SolanaService {
 
   private getRandomElement(array: string[]): string {
     return array[Math.floor(Math.random() * array.length)];
+  }
+
+  private async downloadImageFromIPFS(ipfsUrl: string, filename: string): Promise<string> {
+    try {
+      const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
+      if (response.status !== 200) throw new Error(`Failed to fetch image: ${response.statusText}`);
+
+      // Use the /tmp directory for temporary storage in Google Cloud environment
+      const outputPath = `/tmp/${filename}`;
+
+      // Write the file directly without checking if the directory exists
+      // The /tmp directory is guaranteed to exist, but you may still want to catch errors
+      await fs.writeFile(outputPath, response.data);
+      console.log(`Image downloaded to: ${outputPath}`);
+
+      // Return the outputPath so it can be used for further processing
+      return outputPath;
+    } catch (error) {
+        console.error('Error downloading image from IPFS:', error);
+        // Return or throw an error indicating that the image path could not be created or returned
+        throw error; // Or you can return an empty string or a specific error message depending on how you want to handle the error.
+    }
+  }
+
+  private async resizeImage(inputPath: string, outputPath: string, size: number) {
+    await sharp(inputPath)
+        .resize(size, size) // Resize the image to 500x500 pixels
+        .toFile(outputPath); // Save the resized image
   }
 
   public getConnection(rpcUrl: string): solanaWeb3.Connection {
@@ -55,7 +86,7 @@ export class SolanaService {
     const emotion = this.getRandomElement(this.emotions);
 
     try {
-      let image_url = await this.aiService.predict(1, `A ${color} ${location} ${prompt} ${userInput} that looks ${emotion.toLowerCase()}`);
+      let image_url = await this.aiService.predict(42, `A ${color} ${location} ${prompt} ${userInput} that looks ${emotion.toLowerCase()}`);
 
       if (!image_url) {
         throw new HttpException('Error generating image', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -89,14 +120,14 @@ export class SolanaService {
   }
 
   public async mintNFT(walletAddress: string, prompt: string, userInput: string): Promise<string> {
+
     console.log('mintNFT');
     const QUICKNODE_RPC = 'https://proportionate-wider-diamond.solana-devnet.quiknode.pro/19ed12d6e746c89d77e41742081cd0e015c44e61/';
-    const SOLANA_CONNECTION = new solanaWeb3.Connection(QUICKNODE_RPC);
+    //const SOLANA_CONNECTION = new solanaWeb3.Connection(QUICKNODE_RPC);
     const privateKey = '9iKxJ1d2MB4So7P9XpXWzsxVgAgkygJb6RbLUMYp8rfUUjwykzWAf2nsMKJTtbUU2PQ7yvf2TPz7FHL9cZcZri3'
     const decodedSecretKey = bs58.decode(privateKey);
     const WALLET = solanaWeb3.Keypair.fromSecretKey(decodedSecretKey);
 
-   
     const umi = createUmi(QUICKNODE_RPC)
       .use(mplCore())
       .use(dasApi());
@@ -144,59 +175,69 @@ export class SolanaService {
     };
     console.log('pre metadata');
 
-    // const uploadImage = async () => {
-    //   const irys = await getIrys();
-    //   // write the image to the vercel tmp directory
-    //   const fileToUpload = `/tmp/${fileName}.png`;
-    //   const token = "solana";
-    //   // Get size of file
-    //   const { size } = await fs.promises.stat(fileToUpload);
-    //   // Get cost to upload "size" bytes
-    //   const price = await irys.getPrice(size);
-    //   console.log(
-    //     `Uploading ${size} bytes costs ${irys.utils.fromAtomic(
-    //       price,
-    //     )} ${token}`,
-    //   );
-    //   // Fund the node
-    //   await irys.fund(price);
+    const uploadImage = async () => {
+      const irys = await getIrys();
+      const originalFilePath = '/tmp/downloadedImage.png';
+      const resizedFilePath = '/tmp/resized-downloadedImage.png';
+  
+      // Resize the image before uploading
+      try {
+          await this.resizeImage(originalFilePath, resizedFilePath, 500);
+      } catch (error) {
+          console.error("Error resizing the image: ", error);
+          throw error; // Consider how you want to handle this error.
+      }
+      const token = "solana";  
+      // Proceed with the upload process
+      // Get size of resized file
+      const { size } = await fs.stat(resizedFilePath);
+      const price = await irys.getPrice(size);
+      console.log(`Uploading ${size} bytes costs ${irys.utils.fromAtomic(price)} ${token}`);
+  
+      // Fund the node
+      await irys.fund(price);
+  
+      // Upload the resized image
+      try {
+          const response = await irys.uploadFile(resizedFilePath);
+          console.log(`File uploaded ==> https://gateway.irys.xyz/${response.id}`);
+          return `https://gateway.irys.xyz/${response.id}`;
+      } catch (e) {
+          console.error("Error uploading file: ", e);
+          throw e;
+      }
+    };
 
-    //   // Upload metadata
-    //   try {
-    //     const response = await irys.uploadFile(fileToUpload);
+    const metaData = await this.generateMetadata(prompt, userInput);
+    console.log('metaData :', metaData);
+    const { name, description, external_url, image, attributes } = metaData;
 
-    //     console.log(
-    //       `File uploaded ==> https://gateway.irys.xyz/${response.id}`,
-    //     );
-    //     return `https://gateway.irys.xyz/${response.id}`;
-    //   } catch (e) {
-    //     console.log("Error uploading file ", e);
-    //   }
-    // };
-    // const image_url = await uploadImage();
+    this.downloadImageFromIPFS(image, 'downloadedImage.png');
+    const image_url = await uploadImage();
 
-
-    // const metaData = await this.generateMetadata(prompt, userInput);
-    // console.log('metaData :', metaData);
+     const CONFIG = {
+       uploadPath: image_url,
+       imgFileName: `${name}.png`,
+       imgType: 'image/png',
+       imgName: name,
+       description: description,
+       external_url: external_url,
+       attributes: attributes,
+       sellerFeeBasisPoints: 500, //500 bp = 5%
+       symbol: 'SCF',
+       creators: [
+           {address: WALLET.publicKey, share: 100}
+       ],
+        files: [
+          {
+            uri: image_url,
+            type: 'image/png',
+          },
+        ],
+      };
     
-    // const { name, description, external_url, image, attributes } = metaData;
-
-    // const CONFIG = {
-    //   uploadPath: image,
-    //   imgFileName: `${name}.png`,
-    //   imgType: 'image/png',
-    //   imgName: name,
-    //   description: description,
-    //   attributes: attributes,
-    //   sellerFeeBasisPoints: 500, //500 bp = 5%
-    //   symbol: 'SCF',
-    //   creators: [
-    //       {address: WALLET.publicKey, share: 100}
-    //   ]
-    // };
-
-      const CONFIG = {
-      uploadPath: 'https://ivory-fancy-hamster-735.mypinata.cloud/ipfs/QmRzjNUsscdDfaqzbRwU4zZhcp392nchMsnaBLUAZEd16g',
+    /*const CONFIG = {
+      uploadPath: 'https://ibb.co/9NPqzYk',
       imgFileName: `eyo.png`,
       imgType: 'image/png',
       imgName: 'eyo',
@@ -210,8 +251,15 @@ export class SolanaService {
       symbol: 'SCF',
       creators: [
           {address: WALLET.publicKey, share: 100}
-      ]
-    };
+      ],
+      files: [
+        {
+          uri: 'https://ibb.co/9NPqzYk',
+          type: 'image/png',
+        },
+      ],
+    };*/
+
     const data = JSON.stringify(CONFIG);
     const uri = await uploadMetadata(data);
   
@@ -219,12 +267,13 @@ export class SolanaService {
     const assetAddress = generateSigner(umi);
     const result = await createV1(umi, {
       asset: assetAddress,
-      name: 'My Nft',
+      name: 'Scarif NFT',
       uri: uri,
     }).sendAndConfirm(umi);
     console.log('assetAddress :', assetAddress.publicKey);
     console.log('result :', result);
     
     return `Minted NFT: https://core.metaplex.com/explorer/${assetAddress.publicKey}?env=devnet`;
+
   }
 }
